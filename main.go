@@ -16,6 +16,7 @@ var (
 	flagPollInterval     string
 	flagScavengeInterval string
 	flagNotifierEndpoint string
+	flagCallbackId       string
 )
 
 func main() {
@@ -24,8 +25,11 @@ func main() {
 	flag.StringVar(&flagDockerPath, "docker", "/usr/local/bin/docker", "path for docker")
 	flag.StringVar(&flagPollInterval, "interval", "5s", "health check intervals in duration (5s, 2m,...)")
 	flag.StringVar(&flagScavengeInterval, "scavenge", "10s", "interval to check for missing containers in duration (10s, 5m,...)")
-	flag.StringVar(&flagNotifierEndpoint, "notification", "https://app.cloud66.com/container_notification/", "notification endpoint")
+	flag.StringVar(&flagNotifierEndpoint, "notification", "https://app.cloud66.com/containers/status/", "notification endpoint")
+	flag.StringVar(&flagCallbackId, "callback", "", "callback id for notification")
 	flag.Parse()
+
+	debugMode = os.Getenv("GOCKER_DEBUG") != ""
 
 	if len(args) > 0 && args[0] == "help" {
 		flag.PrintDefaults()
@@ -57,17 +61,18 @@ func main() {
 
 	config = Config{
 		DockerPath:       flagDockerPath,
-		PollInterval:			pollInterval,
+		PollInterval:     pollInterval,
 		ScavengeInterval: scavengeInterval,
 		ScavengeTimeout:  scavengeInterval * 2,
-		Notifier:         &Notifier{endPoint: flagNotifierEndpoint},
+		Notifier:         &Notifier{endpoint: flagNotifierEndpoint},
+		CallbackId:       flagCallbackId,
 	}
 
 	// we are here, get the automatic updates going
 	go autoUpdate()
 
 	manager := Manager{}
-		
+
 	go manager.startPolling()
 	go manager.startScavenger()
 	select {}

@@ -10,4 +10,5 @@ type Config struct {
 	ScavengeInterval time.Duration
 	ScavengeTimeout  time.Duration
 	Notifier         *Notifier
+	CallbackId       string
 }
