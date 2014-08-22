@@ -50,8 +50,8 @@ func (manager *Manager) startPolling() {
 				glog.V(5).Infof("Found a new process %s", uid)
 				process := DockerProcess { uid: uid, lastObservedAt: time.Now() }
 
-				// get the runtime inspect
-				glog.V(6).Info(process.Inspect())
+				// notify
+				config.Notifier.notify(&process)
 
 				manager.procs = append(manager.procs, &process)
 			} else {
@@ -74,6 +74,9 @@ func (manager *Manager) startScavenger() {
 				// take it out
 				copy(manager.procs[idx:], manager.procs[idx + 1:])
 				manager.procs = manager.procs[:len(manager.procs) -1]
+
+				// notify
+				config.Notifier.notify(ps)
 			}
 		}
 	}
@@ -81,9 +84,7 @@ func (manager *Manager) startScavenger() {
 
 func (manager *Manager) findProcessByUid(uid string) *DockerProcess {
 	for _, ps := range manager.procs {
-		if ps == nil {
-			glog.V(5).Info("WTF")
-		} else if ps.uid == uid {
+		if ps.uid == uid {
 			return ps
 		}
 	}

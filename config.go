@@ -9,4 +9,5 @@ type Config struct {
 	PollInterval 			time.Duration
 	ScavengeInterval 	time.Duration
 	ScavengeTimeout		time.Duration
+	Notifier					*Notifier
 }
