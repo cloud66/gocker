@@ -1,10 +1,11 @@
 package main
 
-import ("github.com/golang/glog"
-			 )
+import (
+	"github.com/golang/glog"
+)
 
 type Notifier struct {
-	endPoint	string
+	endPoint string
 }
 
 func (notifier *Notifier) notify(dockerProcess *DockerProcess) error {

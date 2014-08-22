@@ -1,14 +1,15 @@
 package main
 
-import ("os/exec"
-				"strings"
-				"regexp"
-				"time"
-				"github.com/golang/glog"
-				)
+import (
+	"github.com/golang/glog"
+	"os/exec"
+	"regexp"
+	"strings"
+	"time"
+)
 
 type Manager struct {
-	procs		[]*DockerProcess
+	procs []*DockerProcess
 }
 
 var uidParser = regexp.MustCompile(`(^[a-f0-9]{64})`)
@@ -48,7 +49,7 @@ func (manager *Manager) startPolling() {
 			// is it new?, add it
 			if ps == nil {
 				glog.V(5).Infof("Found a new process %s", uid)
-				process := DockerProcess { uid: uid, lastObservedAt: time.Now() }
+				process := DockerProcess{uid: uid, lastObservedAt: time.Now()}
 
 				// notify
 				config.Notifier.notify(&process)
@@ -68,12 +69,12 @@ func (manager *Manager) startScavenger() {
 	for _ = range time.Tick(config.ScavengeInterval) {
 		glog.V(5).Info("Scavenging")
 		for idx, ps := range manager.procs {
-			if time.Since(ps.lastObservedAt) > config.ScavengeTimeout {
+			if time.Since(ps.lastObservedAt) > config.ScavengeInterval {
 				// we got a skipper here
 				glog.Infof("Process %s missing", ps.uid)
 				// take it out
-				copy(manager.procs[idx:], manager.procs[idx + 1:])
-				manager.procs = manager.procs[:len(manager.procs) -1]
+				copy(manager.procs[idx:], manager.procs[idx+1:])
+				manager.procs = manager.procs[:len(manager.procs)-1]
 
 				// notify
 				config.Notifier.notify(ps)

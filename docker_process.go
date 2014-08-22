@@ -1,14 +1,15 @@
 package main
 
-import ("time"
-			  "github.com/golang/glog"
-				"os/exec"
-			 )
+import (
+	"github.com/golang/glog"
+	"os/exec"
+	"time"
+)
 
 // this is a single docker process that has been observed at least once
 type DockerProcess struct {
-	uid							string
-	lastObservedAt	time.Time
+	uid            string
+	lastObservedAt time.Time
 }
 
 func (dockerProcess *DockerProcess) Inspect() (string, error) {
