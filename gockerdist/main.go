@@ -33,7 +33,7 @@ var (
 )
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "Usage: gdist (build|publish|latest) -v <version> -b <branch>")
+	fmt.Fprintln(os.Stderr, "Usage: gockerdist (build|publish|latest) -v <version> -b <branch>")
 	os.Exit(2)
 }
 

@@ -15,3 +15,5 @@ _testmain.go
 *.test
 gocker
 gdist/gdist
+gockerdist/tmp
+gockerdist/gdist
