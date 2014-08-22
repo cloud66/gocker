@@ -52,7 +52,7 @@ func (manager *Manager) startPolling() {
 				process := DockerProcess{uid: uid, lastObservedAt: time.Now()}
 
 				// notify
-				_, err := config.Notifier.notify(&process)
+				_, err := config.Notifier.notify("new", &process)
 				if err != nil {
 					glog.Errorf("Notification failed: %s", err.Error())
 				}
@@ -80,7 +80,7 @@ func (manager *Manager) startScavenger() {
 				manager.procs = manager.procs[:len(manager.procs)-1]
 
 				// notify
-				_, err := config.Notifier.notify(ps)
+				_, err := config.Notifier.notify("missing", ps)
 				if err != nil {
 					glog.Errorf("Notification failed: %s", err.Error())
 				}

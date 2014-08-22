@@ -26,29 +26,31 @@ type Notifier struct {
 }
 
 type Payload struct {
-	callbackId      string    `json:"callbackId"`
-	containerId     string    `json:"containerId"`
-	lastObservation time.Time `json:"lastObservation_at"`
-	runtime         string    `json:"runtime"`
+	CallbackId      string    `json:"callback_id"`
+	ContainerId     string    `json:"container_id"`
+	LastObservation time.Time `json:"lastObservation_at"`
+	Status					string		`json:"status"`
+	Runtime         string    `json:"runtime"`
 }
 
-func (n *Notifier) notify(process *DockerProcess) (string, error) {
+func (n *Notifier) notify(status string, process *DockerProcess) (string, error) {
 	glog.V(5).Infof("Notifying server about %s", process.uid)
 	httpClient := n.client
 	if httpClient == nil {
 		n.client = http.DefaultClient
 	}
 
-	runtime, err := process.Inspect()
+	runtimeInspect, err := process.Inspect()
 	if err != nil {
 		return "", err
 	}
 
 	p := Payload{
-		callbackId:      config.CallbackId,
-		containerId:     process.uid,
-		lastObservation: process.lastObservedAt,
-		runtime:         runtime,
+		CallbackId:      config.CallbackId,
+		ContainerId:     process.uid,
+		LastObservation: process.lastObservedAt,
+		Status:					 status,
+		Runtime:         runtimeInspect,
 	}
 
 	var rbody io.Reader
