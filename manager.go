@@ -15,7 +15,7 @@ var uidParser = regexp.MustCompile(`(^[a-f0-9]{64})`)
 
 func (manager *Manager) getProcesses() ([]string, error) {
 	glog.V(5).Info("Getting processes")
-	cmd := exec.Command(manager.getDockerPath(), "ps", "--no-trunc")
+	cmd := exec.Command(config.DockerPath, "ps", "--no-trunc")
 	out, err := cmd.Output()
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func (manager *Manager) getProcesses() ([]string, error) {
 
 func (manager *Manager) startPolling() {
 	glog.Info("Starting polling...")
-	for _ = range time.Tick(2 * time.Second) { // TODO: make configurable
+	for _ = range time.Tick(config.PollInterval) {
 		uids, err := manager.getProcesses()
 		if err != nil {
 			// log the error
@@ -49,6 +49,10 @@ func (manager *Manager) startPolling() {
 			if ps == nil {
 				glog.V(5).Infof("Found a new process %s", uid)
 				process := DockerProcess { uid: uid, lastObservedAt: time.Now() }
+
+				// get the runtime inspect
+				glog.V(6).Info(process.Inspect())
+
 				manager.procs = append(manager.procs, &process)
 			} else {
 				// we had it before. update it
@@ -61,10 +65,10 @@ func (manager *Manager) startPolling() {
 
 func (manager *Manager) startScavenger() {
 	glog.Info("Starting scavenger loop...")
-	for _ = range time.Tick(10 * time.Second) { // TODO: make configurable
+	for _ = range time.Tick(config.ScavengeInterval) {
 		glog.V(5).Info("Scavenging")
 		for idx, ps := range manager.procs {
-			if time.Since(ps.lastObservedAt) > time.Duration(20 * time.Second) { // TODO: make configurable
+			if time.Since(ps.lastObservedAt) > config.ScavengeTimeout {
 				// we got a skipper here
 				glog.Infof("Process %s missing", ps.uid)
 				// take it out
@@ -85,9 +89,4 @@ func (manager *Manager) findProcessByUid(uid string) *DockerProcess {
 	}
 
 	return nil
-}
-
-func (manager *Manager) getDockerPath() string {
-	// TODO: get it from `which` and cache it
-	return "/usr/local/bin/docker"
 }
