@@ -60,19 +60,19 @@ func init() {
 	}
 }
 
-func runUpdate() {
+func runUpdate() bool {
 	updateIt, err := needUpdate()
 	if err != nil {
 		if debugMode {
 			fmt.Printf("Cannot verify need for update %v\n", err)
 		}
-		return
+		return false
 	}
 	if !updateIt {
 		if debugMode {
 			fmt.Println("No need for update")
 		}
-		return
+		return false
 	}
 
 	// houston we have an update. which one do we need?
@@ -86,7 +86,7 @@ func runUpdate() {
 		if debugMode {
 			fmt.Println("Found no matching download for the current OS and ARCH")
 		}
-		return
+		return false
 	}
 
 	err = download.update()
@@ -94,8 +94,9 @@ func runUpdate() {
 		if debugMode {
 			fmt.Printf("Failed to update: %v\n", err)
 		}
-		return
+		return false
 	}
+	return true
 }
 
 func needUpdate() (bool, error) {

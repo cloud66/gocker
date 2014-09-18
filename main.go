@@ -80,6 +80,9 @@ func main() {
 
 func autoUpdate() {
 	for _ = range time.Tick(30 * time.Minute) {
-		runUpdate()
+		if runUpdate() {
+			fmt.Printf("Shutting down so new version can start!")
+			os.Exit(0)
+		}
 	}
 }
