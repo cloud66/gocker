@@ -67,12 +67,12 @@ func publish() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	manifestFile := filepath.Join(publishDir, flagVersion, "gocker_" + flagVersion + ".json")
+	manifestFile := filepath.Join(publishDir, flagVersion, "gocker_"+flagVersion+".json")
 	manifest, err := os.Create(manifestFile)
 	defer manifest.Close()
 
 	manifest.Write(b)
-	upload(manifestFile, S3_URL+"gocker_" + flagVersion + ".json")
+	upload(manifestFile, S3_URL+"gocker_"+flagVersion+".json")
 
 	// update the latest version file unless it's dev
 	if flagVersion != "dev" {

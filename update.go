@@ -131,6 +131,8 @@ func needUpdate() (bool, error) {
 
 func getVersionManifest(version string) (*GockerDownload, error) {
 	resp, err := http.Get(DOWNLOAD_URL + "gocker_" + version + ".json")
+	defer resp.Body.Close()
+
 	if err != nil {
 		return nil, err
 	} else if resp.StatusCode != 200 {
@@ -316,6 +318,8 @@ func fetch(url string) (io.ReadCloser, error) {
 		fmt.Printf("Downloading %s\n", url)
 	}
 	resp, err := http.Get(url)
+	defer resp.Body.Close()
+
 	if err != nil {
 		return nil, err
 	}
@@ -335,6 +339,8 @@ func findLatestVersion() (*GockerLatest, error) {
 		fmt.Printf("Dowloading gocker manifest from %s\n", path)
 	}
 	resp, err := http.Get(path)
+	defer resp.Body.Close()
+
 	if err != nil {
 		return nil, err
 	} else if resp.StatusCode != 200 {

@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"os"
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
+	"os"
 	"runtime"
 	"time"
 
@@ -29,7 +29,7 @@ type Payload struct {
 	CallbackId      string    `json:"callback_id"`
 	ContainerId     string    `json:"container_id"`
 	LastObservation time.Time `json:"lastObservation_at"`
-	Status					string		`json:"status"`
+	Status          string    `json:"status"`
 	Runtime         string    `json:"runtime"`
 }
 
@@ -49,7 +49,7 @@ func (n *Notifier) notify(status string, process *DockerProcess) (string, error)
 		CallbackId:      config.CallbackId,
 		ContainerId:     process.uid,
 		LastObservation: process.lastObservedAt,
-		Status:					 status,
+		Status:          status,
 		Runtime:         runtimeInspect,
 	}
 
@@ -73,10 +73,10 @@ func (n *Notifier) notify(status string, process *DockerProcess) (string, error)
 	if debugMode {
 		dump, err := httputil.DumpRequestOut(req, true)
 		if err != nil {
-				glog.Error(err)
+			glog.Error(err)
 		} else {
-				os.Stderr.Write(dump)
-				os.Stderr.Write([]byte{'\n', '\n'})
+			os.Stderr.Write(dump)
+			os.Stderr.Write([]byte{'\n', '\n'})
 		}
 	}
 
