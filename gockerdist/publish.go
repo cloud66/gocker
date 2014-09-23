@@ -50,7 +50,7 @@ func publish() {
 
 	// upload the binaries
 	var uploadGroup sync.WaitGroup
-	uploadGroup.Add(len(downloads))
+	uploadGroup.Add(len(downloads) + 1)
 	for _, d := range downloads {
 		go func(download GockerDownload) {
 			defer uploadGroup.Done()
@@ -60,6 +60,13 @@ func publish() {
 			}
 		}(d)
 	}
+	go func() {
+		defer uploadGroup.Done()
+		err := uploadLatestBinary()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+	}()
 	uploadGroup.Wait()
 
 	// generate the manifest
@@ -88,6 +95,13 @@ func publish() {
 
 func (download *GockerDownload) upload() error {
 	return upload(download.LocalPath, S3_URL+download.File)
+}
+
+// this uploads the latest Linux 64 bit binary version of gocker
+// to S3 so it can be used for simple download and installation
+func uploadLatestBinary() error {
+	localFile := filepath.Join(publishDir, flagVersion) + "/gocker_" + flagVersion + "_amd64.deb"
+	return upload(localFile, S3_URL+"gocker_amd64.deb")
 }
 
 func (latest *GockerLatest) upload() error {
