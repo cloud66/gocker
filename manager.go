@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/golang/glog"
 	"os/exec"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/golang/glog"
 )
 
 type Manager struct {
@@ -98,4 +99,11 @@ func (manager *Manager) findProcessByUid(uid string) *DockerProcess {
 	}
 
 	return nil
+}
+
+func (manager *Manager) startRefresher() {
+	glog.Info("Starting refresher loop ...")
+	for _ = range time.Tick(15 * time.Minute) {
+		manager.procs = nil
+	}
 }
