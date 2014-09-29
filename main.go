@@ -75,6 +75,7 @@ func main() {
 
 	go manager.startPolling()
 	go manager.startScavenger()
+	go manager.startRefresher()
 	select {}
 }
 
