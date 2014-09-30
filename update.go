@@ -318,7 +318,6 @@ func fetch(url string) (io.ReadCloser, error) {
 		fmt.Printf("Downloading %s\n", url)
 	}
 	resp, err := http.Get(url)
-	defer resp.Body.Close()
 
 	if err != nil {
 		return nil, err

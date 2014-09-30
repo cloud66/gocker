@@ -28,7 +28,7 @@ type Notifier struct {
 type Payload struct {
 	CallbackId      string    `json:"callback_id"`
 	ContainerId     string    `json:"container_id"`
-	LastObservation time.Time `json:"lastObservation_at"`
+	LastObservation time.Time `json:"last_observation_at"`
 	Status          string    `json:"status"`
 	Runtime         string    `json:"runtime"`
 }
