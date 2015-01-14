@@ -93,6 +93,7 @@ func (manager *Manager) performPoll() {
 		}
 
 		// notify
+		glog.V(5).Infof("Notifying about %d", len(manager.procs))
 		_, err := config.Notifier.notifyAll(manager.procs)
 		if err != nil {
 			glog.Errorf("Notification failed: %s", err.Error())
