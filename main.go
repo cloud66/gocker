@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 	"time"
-
-	"github.com/golang/glog"
 )
 
 var (
@@ -77,10 +75,7 @@ func main() {
 	manager.hasLocalState = false
 
 	// do the first started poll before other stuff starts
-	glog.Info("executing performPoll")
 	manager.performPoll()
-
-	glog.Info("WTF")
 
 	go manager.startPolling()
 	go manager.startScavenger()
