@@ -142,6 +142,7 @@ func (n *Notifier) notifyAll(processes []*DockerProcess) (string, error) {
 			Runtime:         runtimeInspect,
 		}
 		containers = append(containers, container)
+		glog.V(5).Infof("%d containers created", len(containers))
 	}
 
 	p := PayloadFull{
