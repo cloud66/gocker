@@ -121,7 +121,7 @@ func (n *Notifier) notifyAll(processes []*DockerProcess) (string, error) {
 	if processes == nil {
 		glog.V(5).Infof("Notifying server full - no processes running")
 	} else {
-		glog.V(5).Infof("Notifying server full - %s processes running", len(processes))
+		glog.V(5).Infof("Notifying server full - %d processes running", len(processes))
 	}
 
 	httpClient := n.client
@@ -159,6 +159,7 @@ func (n *Notifier) notifyAll(processes []*DockerProcess) (string, error) {
 	rbody = bytes.NewReader(j)
 
 	endpoint := n.endpoint + "containers/status/all"
+	glog.V(5).Infof("Posting to %s", endpoint)
 	req, err := http.NewRequest("POST", endpoint, rbody)
 	if err != nil {
 		return "", err
