@@ -37,8 +37,7 @@ func (manager *Manager) getProcesses() ([]string, error) {
 }
 
 func (manager *Manager) startPolling() {
-	glog.Info("Starting polling...")
-	manager.performPoll()
+	glog.Info("Starting polling ticks...")
 	for _ = range time.Tick(config.PollInterval) {
 		manager.performPoll()
 	}

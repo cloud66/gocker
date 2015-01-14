@@ -73,8 +73,7 @@ func (n *Notifier) notify(status string, process *DockerProcess) (string, error)
 	}
 	rbody = bytes.NewReader(j)
 
-	endpoint := n.endpoint + "containers/status/"
-	req, err := http.NewRequest("POST", endpoint, rbody)
+	req, err := http.NewRequest("POST", n.endpoint, rbody)
 	if err != nil {
 		return "", err
 	}
@@ -158,9 +157,7 @@ func (n *Notifier) notifyAll(processes []*DockerProcess) (string, error) {
 	}
 	rbody = bytes.NewReader(j)
 
-	endpoint := n.endpoint + "containers/status/all"
-	glog.V(5).Infof("Posting to %s", endpoint)
-	req, err := http.NewRequest("POST", endpoint, rbody)
+	req, err := http.NewRequest("POST", n.endpoint, rbody)
 	if err != nil {
 		return "", err
 	}
