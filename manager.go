@@ -37,6 +37,7 @@ func (manager *Manager) getProcesses() ([]string, error) {
 }
 
 func (manager *Manager) startPolling() {
+	glog.Info("Starting polling...")
 	manager.performPoll()
 	for _ = range time.Tick(config.PollInterval) {
 		manager.performPoll()
@@ -44,7 +45,7 @@ func (manager *Manager) startPolling() {
 }
 
 func (manager *Manager) performPoll() {
-	glog.Info("Starting polling...")
+	glog.V(5).Info("Performing polling action")
 	uids, err := manager.getProcesses()
 	if err != nil {
 		// log the error
@@ -53,6 +54,7 @@ func (manager *Manager) performPoll() {
 
 	// is this the first run (or a )
 	if manager.hasLocalState {
+		glog.V(5).Info("Gocker has local state saved")
 
 		// now that we have the uids, find them and update them
 		for _, uid := range uids {
@@ -78,7 +80,7 @@ func (manager *Manager) performPoll() {
 
 	} else {
 
-		glog.V(5).Infof("Full process notification (full local state refresh)")
+		glog.V(5).Info("Gocker does not have local state saved")
 
 		// reset the manager state
 		manager.procs = nil
