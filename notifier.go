@@ -128,7 +128,7 @@ func (n *Notifier) notifyAll(processes []*DockerProcess) (string, error) {
 		n.client = http.DefaultClient
 	}
 
-	containers := make([]Container, len(processes))
+	containers := make([]Container, 0)
 	for _, process := range processes {
 		runtimeInspect, err := process.Inspect()
 		if err != nil {
