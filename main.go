@@ -25,7 +25,7 @@ func main() {
 	flag.StringVar(&flagDockerPath, "docker", "/usr/local/bin/docker", "path for docker")
 	flag.StringVar(&flagPollInterval, "interval", "5s", "health check intervals in duration (5s, 2m,...)")
 	flag.StringVar(&flagScavengeInterval, "scavenge", "10s", "interval to check for missing containers in duration (10s, 5m,...)")
-	flag.StringVar(&flagNotifierEndpoint, "notification", "https://app.cloud66.com/containers/status/", "notification endpoint")
+	flag.StringVar(&flagNotifierEndpoint, "notification", "https://app.cloud66.com/", "notification endpoint")
 	flag.StringVar(&flagCallbackId, "callback", "", "callback id for notification")
 	flag.Parse()
 
@@ -72,6 +72,7 @@ func main() {
 	go autoUpdate()
 
 	manager := Manager{}
+	manager.hasLocalState = false
 
 	go manager.startPolling()
 	go manager.startScavenger()

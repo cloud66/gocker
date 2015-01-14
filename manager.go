@@ -10,7 +10,8 @@ import (
 )
 
 type Manager struct {
-	procs []*DockerProcess
+	hasLocalState bool
+	procs         []*DockerProcess
 }
 
 var uidParser = regexp.MustCompile(`(^[a-f0-9]{64})`)
@@ -44,26 +45,51 @@ func (manager *Manager) startPolling() {
 			glog.Error(err.Error())
 		}
 
-		// now that we have the uids, find them and update them
-		for _, uid := range uids {
-			ps := manager.findProcessByUid(uid)
-			// is it new?, add it
-			if ps == nil {
-				glog.V(5).Infof("Found a new process %s", uid)
-				process := DockerProcess{uid: uid, lastObservedAt: time.Now()}
+		// is this the first run (or a )
+		if manager.hasLocalState {
 
-				// notify
-				_, err := config.Notifier.notify("new", &process)
-				if err != nil {
-					glog.Errorf("Notification failed: %s", err.Error())
+			// now that we have the uids, find them and update them
+			for _, uid := range uids {
+				ps := manager.findProcessByUid(uid)
+				// is it new?, add it
+				if ps == nil {
+					glog.V(5).Infof("Found a new process %s", uid)
+					process := DockerProcess{uid: uid, lastObservedAt: time.Now()}
+
+					// notify
+					_, err := config.Notifier.notify("new", &process)
+					if err != nil {
+						glog.Errorf("Notification failed: %s", err.Error())
+					}
+
+					manager.procs = append(manager.procs, &process)
+				} else {
+					// we had it before. update it
+					glog.V(5).Infof("Process %s is still alive", ps.uid)
+					ps.lastObservedAt = time.Now()
 				}
-
-				manager.procs = append(manager.procs, &process)
-			} else {
-				// we had it before. update it
-				glog.V(5).Infof("Process %s is still alive", ps.uid)
-				ps.lastObservedAt = time.Now()
 			}
+
+		} else {
+
+			glog.V(5).Infof("Full process notification (full local state refresh)")
+
+			// reset the manager state
+			manager.procs = nil
+			manager.hasLocalState = true
+
+			// now that we have the uids, find them and update them
+			for _, uid := range uids {
+				process := DockerProcess{uid: uid, lastObservedAt: time.Now()}
+				manager.procs = append(manager.procs, &process)
+			}
+
+			// notify
+			_, err := config.Notifier.notifyAll(manager.procs)
+			if err != nil {
+				glog.Errorf("Notification failed: %s", err.Error())
+			}
+
 		}
 	}
 }
@@ -105,5 +131,6 @@ func (manager *Manager) startRefresher() {
 	glog.Info("Starting refresher loop ...")
 	for _ = range time.Tick(15 * time.Minute) {
 		manager.procs = nil
+		manager.hasLocalState = false
 	}
 }
