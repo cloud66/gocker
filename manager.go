@@ -37,61 +37,67 @@ func (manager *Manager) getProcesses() ([]string, error) {
 }
 
 func (manager *Manager) startPolling() {
-	glog.Info("Starting polling...")
+	manager.performPoll()
 	for _ = range time.Tick(config.PollInterval) {
-		uids, err := manager.getProcesses()
-		if err != nil {
-			// log the error
-			glog.Error(err.Error())
-		}
-
-		// is this the first run (or a )
-		if manager.hasLocalState {
-
-			// now that we have the uids, find them and update them
-			for _, uid := range uids {
-				ps := manager.findProcessByUid(uid)
-				// is it new?, add it
-				if ps == nil {
-					glog.V(5).Infof("Found a new process %s", uid)
-					process := DockerProcess{uid: uid, lastObservedAt: time.Now()}
-
-					// notify
-					_, err := config.Notifier.notify("new", &process)
-					if err != nil {
-						glog.Errorf("Notification failed: %s", err.Error())
-					}
-
-					manager.procs = append(manager.procs, &process)
-				} else {
-					// we had it before. update it
-					glog.V(5).Infof("Process %s is still alive", ps.uid)
-					ps.lastObservedAt = time.Now()
-				}
-			}
-
-		} else {
-
-			glog.V(5).Infof("Full process notification (full local state refresh)")
-
-			// reset the manager state
-			manager.procs = nil
-			manager.hasLocalState = true
-
-			// now that we have the uids, find them and update them
-			for _, uid := range uids {
-				process := DockerProcess{uid: uid, lastObservedAt: time.Now()}
-				manager.procs = append(manager.procs, &process)
-			}
-
-			// notify
-			_, err := config.Notifier.notifyAll(manager.procs)
-			if err != nil {
-				glog.Errorf("Notification failed: %s", err.Error())
-			}
-
-		}
+		manager.performPoll()
 	}
+}
+
+func (manager *Manager) performPoll() {
+	glog.Info("Starting polling...")
+	uids, err := manager.getProcesses()
+	if err != nil {
+		// log the error
+		glog.Error(err.Error())
+	}
+
+	// is this the first run (or a )
+	if manager.hasLocalState {
+
+		// now that we have the uids, find them and update them
+		for _, uid := range uids {
+			ps := manager.findProcessByUid(uid)
+			// is it new?, add it
+			if ps == nil {
+				glog.V(5).Infof("Found a new process %s", uid)
+				process := DockerProcess{uid: uid, lastObservedAt: time.Now()}
+
+				// notify
+				_, err := config.Notifier.notify("new", &process)
+				if err != nil {
+					glog.Errorf("Notification failed: %s", err.Error())
+				}
+
+				manager.procs = append(manager.procs, &process)
+			} else {
+				// we had it before. update it
+				glog.V(5).Infof("Process %s is still alive", ps.uid)
+				ps.lastObservedAt = time.Now()
+			}
+		}
+
+	} else {
+
+		glog.V(5).Infof("Full process notification (full local state refresh)")
+
+		// reset the manager state
+		manager.procs = nil
+		manager.hasLocalState = true
+
+		// now that we have the uids, find them and update them
+		for _, uid := range uids {
+			process := DockerProcess{uid: uid, lastObservedAt: time.Now()}
+			manager.procs = append(manager.procs, &process)
+		}
+
+		// notify
+		_, err := config.Notifier.notifyAll(manager.procs)
+		if err != nil {
+			glog.Errorf("Notification failed: %s", err.Error())
+		}
+
+	}
+
 }
 
 func (manager *Manager) startScavenger() {
