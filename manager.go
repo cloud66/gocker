@@ -10,7 +10,8 @@ import (
 )
 
 type Manager struct {
-	procs []*DockerProcess
+	hasLocalState bool
+	procs         []*DockerProcess
 }
 
 var uidParser = regexp.MustCompile(`(^[a-f0-9]{64})`)
@@ -36,13 +37,23 @@ func (manager *Manager) getProcesses() ([]string, error) {
 }
 
 func (manager *Manager) startPolling() {
-	glog.Info("Starting polling...")
+	glog.Info("Starting polling ticks...")
 	for _ = range time.Tick(config.PollInterval) {
-		uids, err := manager.getProcesses()
-		if err != nil {
-			// log the error
-			glog.Error(err.Error())
-		}
+		manager.performPoll()
+	}
+}
+
+func (manager *Manager) performPoll() {
+	glog.V(5).Info("Performing polling action")
+	uids, err := manager.getProcesses()
+	if err != nil {
+		// log the error
+		glog.Error(err.Error())
+	}
+
+	// is this the first run (or a )
+	if manager.hasLocalState {
+		glog.V(5).Info("Gocker has local state saved")
 
 		// now that we have the uids, find them and update them
 		for _, uid := range uids {
@@ -65,7 +76,30 @@ func (manager *Manager) startPolling() {
 				ps.lastObservedAt = time.Now()
 			}
 		}
+
+	} else {
+
+		glog.V(5).Info("Gocker does not have local state saved")
+
+		// reset the manager state
+		manager.procs = nil
+		manager.hasLocalState = true
+
+		// now that we have the uids, find them and update them
+		for _, uid := range uids {
+			process := DockerProcess{uid: uid, lastObservedAt: time.Now()}
+			manager.procs = append(manager.procs, &process)
+		}
+
+		// notify
+		glog.V(5).Infof("Notifying about %d containers", len(manager.procs))
+		_, err := config.Notifier.notifyAll(manager.procs)
+		if err != nil {
+			glog.Errorf("Notification failed: %s", err.Error())
+		}
+
 	}
+
 }
 
 func (manager *Manager) startScavenger() {
@@ -103,7 +137,7 @@ func (manager *Manager) findProcessByUid(uid string) *DockerProcess {
 
 func (manager *Manager) startRefresher() {
 	glog.Info("Starting refresher loop ...")
-	for _ = range time.Tick(15 * time.Minute) {
-		manager.procs = nil
+	for _ = range time.Tick(60 * time.Minute) {
+		manager.hasLocalState = false
 	}
 }
