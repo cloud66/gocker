@@ -137,8 +137,7 @@ func (manager *Manager) findProcessByUid(uid string) *DockerProcess {
 
 func (manager *Manager) startRefresher() {
 	glog.Info("Starting refresher loop ...")
-	for _ = range time.Tick(15 * time.Minute) {
-		manager.procs = nil
+	for _ = range time.Tick(60 * time.Minute) {
 		manager.hasLocalState = false
 	}
 }
