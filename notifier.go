@@ -85,7 +85,7 @@ func (n *Notifier) notifyAll(processes []*DockerProcess) (string, error) {
 		runtimeInspect, err := process.Inspect()
 		if err != nil {
 			glog.V(5).Infof("<<unable to get runtime information>>")
-			runtimeInspect = "{\"error\":\"unable to get runtime information\"}"
+			runtimeInspect = "[{\"error\":\"unable to get runtime information\"}]"
 		}
 		container := Container{
 			ContainerId:     process.uid,
