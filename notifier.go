@@ -33,6 +33,18 @@ type Payload struct {
 	Runtime         string    `json:"runtime"`
 }
 
+type PayloadFull struct {
+	CallbackId string      `json:"callback_id"`
+	Containers []Container `json:"containers"`
+}
+
+type Container struct {
+	ContainerId     string    `json:"container_id"`
+	LastObservation time.Time `json:"last_observation_at"`
+	Status          string    `json:"status"`
+	Runtime         string    `json:"runtime"`
+}
+
 func (n *Notifier) notify(status string, process *DockerProcess) (string, error) {
 	glog.V(5).Infof("Notifying server about %s", process.uid)
 	httpClient := n.client
@@ -45,7 +57,7 @@ func (n *Notifier) notify(status string, process *DockerProcess) (string, error)
 		return "", err
 	}
 
-	p := Payload{
+	payload := Payload{
 		CallbackId:      config.CallbackId,
 		ContainerId:     process.uid,
 		LastObservation: process.lastObservedAt,
@@ -53,9 +65,50 @@ func (n *Notifier) notify(status string, process *DockerProcess) (string, error)
 		Runtime:         runtimeInspect,
 	}
 
+	return n.PerformPost(payload)
+}
+
+func (n *Notifier) notifyAll(processes []*DockerProcess) (string, error) {
+	if processes == nil {
+		glog.V(5).Infof("Notifying server full - no processes running")
+	} else {
+		glog.V(5).Infof("Notifying server full - %d processes running", len(processes))
+	}
+
+	httpClient := n.client
+	if httpClient == nil {
+		n.client = http.DefaultClient
+	}
+
+	containers := make([]Container, 0)
+	for _, process := range processes {
+		runtimeInspect, err := process.Inspect()
+		if err != nil {
+			glog.V(5).Infof("<<unable to get runtime information>>")
+			runtimeInspect = "[{\"error\":\"unable to get runtime information\"}]"
+		}
+		container := Container{
+			ContainerId:     process.uid,
+			LastObservation: process.lastObservedAt,
+			Status:          "new",
+			Runtime:         runtimeInspect,
+		}
+		containers = append(containers, container)
+		glog.V(5).Infof("%d containers created", len(containers))
+	}
+
+	payload := PayloadFull{
+		CallbackId: config.CallbackId,
+		Containers: containers,
+	}
+
+	return n.PerformPost(payload)
+}
+
+func (n *Notifier) PerformPost(payload interface{}) (string, error) {
 	var rbody io.Reader
 
-	j, err := json.Marshal(p)
+	j, err := json.Marshal(payload)
 	if err != nil {
 		return "", err
 	}

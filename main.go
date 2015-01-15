@@ -72,6 +72,11 @@ func main() {
 	go autoUpdate()
 
 	manager := Manager{}
+	manager.hasLocalState = false
+
+	// do the first started poll before other stuff starts
+	// this will set the local state
+	manager.performPoll()
 
 	go manager.startPolling()
 	go manager.startScavenger()
