@@ -75,6 +75,7 @@ func main() {
 	manager.hasLocalState = false
 
 	// do the first started poll before other stuff starts
+	// this will set the local state
 	manager.performPoll()
 
 	go manager.startPolling()
