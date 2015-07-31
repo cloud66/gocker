@@ -44,7 +44,7 @@ func main() {
 	}
 
 	if len(args) > 0 && args[0] == "version" {
-		fmt.Printf("gocker version: %s\n", VERSION)
+		fmt.Printf("gocker version: %s and build date: %s\n", VERSION, BUILD_DATE)
 		return
 	}
 
