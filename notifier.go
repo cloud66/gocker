@@ -127,8 +127,7 @@ func (n *Notifier) PerformPost(payload interface{}) (string, error) {
 		if err != nil {
 			cxlogger.Debug(err)
 		} else {
-			cxlogger.Debug(dump)
-			cxlogger.Debug([]byte{'\n', '\n'})
+			cxlogger.Debug(string(dump[:]))
 		}
 	}
 
@@ -145,8 +144,7 @@ func (n *Notifier) PerformPost(payload interface{}) (string, error) {
 		if err != nil {
 			cxlogger.Debug(err)
 		} else {
-			cxlogger.Debug(dump)
-			cxlogger.Debug([]byte{'\n', '\n'})
+			cxlogger.Debug(string(dump[:]))
 		}
 	}
 
