@@ -132,9 +132,6 @@ func (n *Notifier) PerformPost(payload interface{}) (string, error) {
 	}
 
 	res, err := n.client.Do(req)
-	// possible race?
-	defer res.Body.Close()
-
 	if err != nil {
 		return "", err
 	}
@@ -153,5 +150,8 @@ func (n *Notifier) PerformPost(payload interface{}) (string, error) {
 		return "", err
 	}
 
-	return string(body), nil
+	the_body := string(body)
+	defer res.Body.Close()
+
+	return the_body, nil
 }
