@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/golang/glog"
 	"os/exec"
 	"time"
+
+	"github.com/cloud66/cxlogger"
 )
 
 // this is a single docker process that has been observed at least once
@@ -13,7 +14,7 @@ type DockerProcess struct {
 }
 
 func (dockerProcess *DockerProcess) Inspect() (string, error) {
-	glog.V(5).Info("Getting inspect meta data")
+	cxlogger.Log.Info("Getting inspect meta data")
 	cmd := exec.Command(config.DockerPath, "inspect", dockerProcess.uid)
 	out, err := cmd.Output()
 	if err != nil {

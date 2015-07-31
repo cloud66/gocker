@@ -15,8 +15,8 @@ import (
 	"os/exec"
 	"runtime"
 
-	"bitbucket.org/kardianos/osext"
 	"github.com/inconshreveable/go-update"
+	"github.com/kardianos/osext"
 )
 
 type GockerDownload struct {

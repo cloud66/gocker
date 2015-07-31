@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/glog"
+	"github.com/cloud66/cxlogger"
 )
 
 type Manager struct {
@@ -17,7 +17,7 @@ type Manager struct {
 var uidParser = regexp.MustCompile(`(^[a-f0-9]{64})`)
 
 func (manager *Manager) getProcesses() ([]string, error) {
-	glog.V(5).Info("Getting processes")
+	cxlogger.Log.Info("Getting processes")
 	cmd := exec.Command(config.DockerPath, "ps", "--no-trunc")
 	out, err := cmd.Output()
 	if err != nil {
@@ -37,49 +37,49 @@ func (manager *Manager) getProcesses() ([]string, error) {
 }
 
 func (manager *Manager) startPolling() {
-	glog.Info("Starting polling ticks...")
+	cxlogger.Log.Info("Starting polling ticks...")
 	for _ = range time.Tick(config.PollInterval) {
 		manager.performPoll()
 	}
 }
 
 func (manager *Manager) performPoll() {
-	glog.V(5).Info("Performing polling action")
+	cxlogger.Log.Info("Performing polling action")
 	uids, err := manager.getProcesses()
 	if err != nil {
 		// log the error
-		glog.Error(err.Error())
+		cxlogger.Log.Error(err.Error())
 	}
 
 	// is this the first run (or a )
 	if manager.hasLocalState {
-		glog.V(5).Info("Gocker has local state saved")
+		cxlogger.Log.Info("Gocker has local state saved")
 
 		// now that we have the uids, find them and update them
 		for _, uid := range uids {
 			ps := manager.findProcessByUid(uid)
 			// is it new?, add it
 			if ps == nil {
-				glog.V(5).Infof("Found a new process %s", uid)
+				cxlogger.Log.Infof("Found a new process %s", uid)
 				process := DockerProcess{uid: uid, lastObservedAt: time.Now()}
 
 				// notify
 				_, err := config.Notifier.notify("new", &process)
 				if err != nil {
-					glog.Errorf("Notification failed: %s", err.Error())
+					cxlogger.Log.Errorf("Notification failed: %s", err.Error())
 				}
 
 				manager.procs = append(manager.procs, &process)
 			} else {
 				// we had it before. update it
-				glog.V(5).Infof("Process %s is still alive", ps.uid)
+				cxlogger.Log.Infof("Process %s is still alive", ps.uid)
 				ps.lastObservedAt = time.Now()
 			}
 		}
 
 	} else {
 
-		glog.V(5).Info("Gocker does not have local state saved")
+		cxlogger.Log.Info("Gocker does not have local state saved")
 
 		// reset the manager state
 		manager.procs = nil
@@ -92,10 +92,10 @@ func (manager *Manager) performPoll() {
 		}
 
 		// notify
-		glog.V(5).Infof("Notifying about %d containers", len(manager.procs))
+		cxlogger.Log.Infof("Notifying about %d containers", len(manager.procs))
 		_, err := config.Notifier.notifyAll(manager.procs)
 		if err != nil {
-			glog.Errorf("Notification failed: %s", err.Error())
+			cxlogger.Log.Errorf("Notification failed: %s", err.Error())
 		}
 
 	}
@@ -103,13 +103,13 @@ func (manager *Manager) performPoll() {
 }
 
 func (manager *Manager) startScavenger() {
-	glog.Info("Starting scavenger loop...")
+	cxlogger.Log.Info("Starting scavenger loop...")
 	for _ = range time.Tick(config.ScavengeInterval) {
-		glog.V(5).Info("Scavenging")
+		cxlogger.Log.Info("Scavenging")
 		for idx, ps := range manager.procs {
 			if time.Since(ps.lastObservedAt) > config.ScavengeInterval {
 				// we got a skipper here
-				glog.Infof("Process %s missing", ps.uid)
+				cxlogger.Log.Infof("Process %s missing", ps.uid)
 				// take it out
 				copy(manager.procs[idx:], manager.procs[idx+1:])
 				manager.procs = manager.procs[:len(manager.procs)-1]
@@ -117,7 +117,7 @@ func (manager *Manager) startScavenger() {
 				// notify
 				_, err := config.Notifier.notify("missing", ps)
 				if err != nil {
-					glog.Errorf("Notification failed: %s", err.Error())
+					cxlogger.Log.Errorf("Notification failed: %s", err.Error())
 				}
 
 			}
@@ -136,7 +136,7 @@ func (manager *Manager) findProcessByUid(uid string) *DockerProcess {
 }
 
 func (manager *Manager) startRefresher() {
-	glog.Info("Starting refresher loop ...")
+	cxlogger.Log.Info("Starting refresher loop ...")
 	for _ = range time.Tick(60 * time.Minute) {
 		manager.hasLocalState = false
 	}

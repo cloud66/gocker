@@ -8,9 +8,10 @@ import (
 )
 
 var (
-	config    Config
-	debugMode bool
-	VERSION   string = "dev"
+	config     Config
+	debugMode  bool
+	VERSION    string = "dev"
+	BUILD_DATE string = ""
 
 	flagDockerPath       string
 	flagPollInterval     string
@@ -77,7 +78,6 @@ func main() {
 	// do the first started poll before other stuff starts
 	// this will set the local state
 	manager.performPoll()
-
 	go manager.startPolling()
 	go manager.startScavenger()
 	go manager.startRefresher()

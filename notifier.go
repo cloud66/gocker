@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"code.google.com/p/go-uuid/uuid"
-	"github.com/golang/glog"
+	"github.com/cloud66/cxlogger"
 )
 
 var (
@@ -46,7 +46,7 @@ type Container struct {
 }
 
 func (n *Notifier) notify(status string, process *DockerProcess) (string, error) {
-	glog.V(5).Infof("Notifying server about %s", process.uid)
+	cxlogger.Log.Infof("Notifying server about %s", process.uid)
 	httpClient := n.client
 	if httpClient == nil {
 		n.client = http.DefaultClient
@@ -70,9 +70,9 @@ func (n *Notifier) notify(status string, process *DockerProcess) (string, error)
 
 func (n *Notifier) notifyAll(processes []*DockerProcess) (string, error) {
 	if processes == nil {
-		glog.V(5).Infof("Notifying server full - no processes running")
+		cxlogger.Log.Infof("Notifying server full - no processes running")
 	} else {
-		glog.V(5).Infof("Notifying server full - %d processes running", len(processes))
+		cxlogger.Log.Infof("Notifying server full - %d processes running", len(processes))
 	}
 
 	httpClient := n.client
@@ -84,7 +84,7 @@ func (n *Notifier) notifyAll(processes []*DockerProcess) (string, error) {
 	for _, process := range processes {
 		runtimeInspect, err := process.Inspect()
 		if err != nil {
-			glog.V(5).Infof("<<unable to get runtime information>>")
+			cxlogger.Log.Infof("<<unable to get runtime information>>")
 			runtimeInspect = "[{\"error\":\"unable to get runtime information\"}]"
 		}
 		container := Container{
@@ -94,7 +94,7 @@ func (n *Notifier) notifyAll(processes []*DockerProcess) (string, error) {
 			Runtime:         runtimeInspect,
 		}
 		containers = append(containers, container)
-		glog.V(5).Infof("%d containers created", len(containers))
+		cxlogger.Log.Infof("%d containers created", len(containers))
 	}
 
 	payload := PayloadFull{
@@ -126,7 +126,7 @@ func (n *Notifier) PerformPost(payload interface{}) (string, error) {
 	if debugMode {
 		dump, err := httputil.DumpRequestOut(req, true)
 		if err != nil {
-			glog.Error(err)
+			cxlogger.Log.Error(err)
 		} else {
 			os.Stderr.Write(dump)
 			os.Stderr.Write([]byte{'\n', '\n'})
@@ -142,7 +142,7 @@ func (n *Notifier) PerformPost(payload interface{}) (string, error) {
 	if debugMode {
 		dump, err := httputil.DumpResponse(res, true)
 		if err != nil {
-			glog.Error(err)
+			cxlogger.Log.Error(err)
 		} else {
 			os.Stderr.Write(dump)
 			os.Stderr.Write([]byte{'\n'})
