@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/cloud66/cxlogger"
 )
 
 var (
@@ -18,6 +20,8 @@ var (
 	flagScavengeInterval string
 	flagNotifierEndpoint string
 	flagCallbackId       string
+	flagLog              string
+	flagLogLevel         string
 )
 
 func main() {
@@ -28,7 +32,12 @@ func main() {
 	flag.StringVar(&flagScavengeInterval, "scavenge", "10s", "interval to check for missing containers in duration (10s, 5m,...)")
 	flag.StringVar(&flagNotifierEndpoint, "notification", "https://app.cloud66.com/containers/status/", "notification endpoint")
 	flag.StringVar(&flagCallbackId, "callback", "", "callback id for notification")
+	flag.StringVar(&flagLog, "log", "/var/log/cloud66-gocker.log", "log output")
+	flag.StringVar(&flagLogLevel, "log-level", "warn", "log level")
 	flag.Parse()
+
+	// default logging
+	cxlogger.Initialize(flagLog, flagLogLevel)
 
 	debugMode = os.Getenv("GOCKER_DEBUG") != ""
 
