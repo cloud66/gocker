@@ -15,6 +15,7 @@ import (
 	"os/exec"
 	"runtime"
 
+	"github.com/cloud66/cxlogger"
 	"github.com/inconshreveable/go-update"
 	"github.com/kardianos/osext"
 )
@@ -45,8 +46,6 @@ const (
 )
 
 func init() {
-	debugMode = os.Getenv("GOCKER_DEBUG") != ""
-
 	if os.Getenv("GOCKER_PLATFORM") == "" {
 		currentPlatform = runtime.GOOS
 	} else {
@@ -63,37 +62,28 @@ func init() {
 func runUpdate() bool {
 	updateIt, err := needUpdate()
 	if err != nil {
-		if debugMode {
-			fmt.Printf("Cannot verify need for update %v\n", err)
-		}
+		cxlogger.Debug(err)
 		return false
 	}
 	if !updateIt {
-		if debugMode {
-			fmt.Println("No need for update")
-		}
+		cxlogger.Debug("No need for update")
 		return false
 	}
 
 	// houston we have an update. which one do we need?
 	download, err := getVersionManifest(flagForcedVersion)
 	if err != nil {
-		if debugMode {
-			fmt.Printf("Error fetching manifest %v\n", err)
-		}
+		cxlogger.Debug(err)
 	}
 	if download == nil {
-		if debugMode {
-			fmt.Println("Found no matching download for the current OS and ARCH")
-		}
+		cxlogger.Debug("Found no matching download for the current OS and ARCH")
 		return false
 	}
 
 	err = download.update()
 	if err != nil {
-		if debugMode {
-			fmt.Printf("Failed to update: %v\n", err)
-		}
+		cxlogger.Debug("Failed to update")
+		cxlogger.Debug(err)
 		return false
 	}
 	return true
@@ -101,22 +91,17 @@ func runUpdate() bool {
 
 func needUpdate() (bool, error) {
 	// get the latest version from remote
-	if debugMode {
-		fmt.Println("Checking for latest version")
-	}
+	cxlogger.Debug("Checking for latest version")
 	latest, err := findLatestVersion()
 	if err != nil {
 		return false, err
 	}
 
-	if debugMode {
-		fmt.Printf("Found %s as the latest version\n", latest.Version)
-	}
+	cxlogger.Debugf("Found %s as the latest version\n", latest.Version)
 
 	if flagForcedVersion != "" {
-		if debugMode {
-			fmt.Printf("Forcing update to %s\n", flagForcedVersion)
-		}
+		cxlogger.Debugf("Forcing update to %s\n", flagForcedVersion)
+		cxlogger.Debug(err)
 		return true, nil
 	} else {
 		flagForcedVersion = latest.Version
@@ -217,9 +202,8 @@ func (download *GockerDownload) fetchBin() ([]byte, error) {
 func (download *GockerDownload) decompress(r io.ReadCloser) ([]byte, error) {
 	// for darwin and windows the files are zipped
 	if download.Platform == "windows" || download.Platform == "darwin" {
-		if debugMode {
-			fmt.Printf("Decompressing for %s\n", download.Platform)
-		}
+		cxlogger.Debugf("Decompressing for %s\n", download.Platform)
+
 		// write it to disk and unzip from there
 		dest, err := ioutil.TempFile("", "gocker")
 		defer os.Remove(dest.Name())
@@ -227,9 +211,8 @@ func (download *GockerDownload) decompress(r io.ReadCloser) ([]byte, error) {
 			return nil, err
 		}
 
-		if debugMode {
-			fmt.Printf("Using temp file %s\n", dest.Name())
-		}
+		cxlogger.Debugf("Using temp file %s\n", dest.Name())
+
 		writer, err := os.Create(dest.Name())
 		if err != nil {
 			return nil, err
@@ -245,9 +228,8 @@ func (download *GockerDownload) decompress(r io.ReadCloser) ([]byte, error) {
 		defer r.Close()
 
 		for _, f := range zipper.File {
-			if debugMode {
-				fmt.Printf("Zipped file %s\n", f.Name)
-			}
+			cxlogger.Debugf("Zipped file %s\n", f.Name)
+
 			var targetFile string
 			if download.Platform == "windows" {
 				targetFile = "gocker.exe"
@@ -297,9 +279,8 @@ func (download *GockerDownload) decompress(r io.ReadCloser) ([]byte, error) {
 			if err != nil {
 				return nil, err
 			}
-			if debugMode {
-				fmt.Printf("Gziped file %s\n", hdr.Name)
-			}
+			cxlogger.Debugf("Gziped file %s\n", hdr.Name)
+
 			if hdr.Name == "gocker_"+flagForcedVersion+"_linux_"+currentArch+"/gocker" {
 				// this is the executable
 				if _, err := io.Copy(untar, tr); err != nil {
@@ -314,9 +295,8 @@ func (download *GockerDownload) decompress(r io.ReadCloser) ([]byte, error) {
 }
 
 func fetch(url string) (io.ReadCloser, error) {
-	if debugMode {
-		fmt.Printf("Downloading %s\n", url)
-	}
+	cxlogger.Debugf("Downloading %s\n", url)
+
 	resp, err := http.Get(url)
 
 	if err != nil {
@@ -334,9 +314,8 @@ func fetch(url string) (io.ReadCloser, error) {
 
 func findLatestVersion() (*GockerLatest, error) {
 	path := DOWNLOAD_URL + "gocker_latest.json"
-	if debugMode {
-		fmt.Printf("Dowloading gocker manifest from %s\n", path)
-	}
+	cxlogger.Debugf("Dowloading gocker manifest from %s\n", path)
+
 	resp, err := http.Get(path)
 	defer resp.Body.Close()
 

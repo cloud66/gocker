@@ -11,7 +11,6 @@ import (
 
 var (
 	config     Config
-	debugMode  bool
 	VERSION    string = "dev"
 	BUILD_DATE string = ""
 
@@ -38,8 +37,7 @@ func main() {
 
 	// default logging
 	cxlogger.Initialize(flagLog, flagLogLevel)
-
-	debugMode = os.Getenv("GOCKER_DEBUG") != ""
+	cxlogger.Debug("Starting")
 
 	if len(args) > 0 && args[0] == "help" {
 		flag.PrintDefaults()

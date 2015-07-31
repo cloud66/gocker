@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
-	"os"
 	"runtime"
 	"time"
 
@@ -123,28 +122,31 @@ func (n *Notifier) PerformPost(payload interface{}) (string, error) {
 	req.Header.Set("User-Agent", USER_AGENT)
 	req.Header.Set("Content-Type", "application/json")
 
-	if debugMode {
+	if cxlogger.Log.Level == cxlogger.LvlDebug {
 		dump, err := httputil.DumpRequestOut(req, true)
 		if err != nil {
-			cxlogger.Log.Error(err)
+			cxlogger.Debug(err)
 		} else {
-			os.Stderr.Write(dump)
-			os.Stderr.Write([]byte{'\n', '\n'})
+			cxlogger.Debug(dump)
+			cxlogger.Debug([]byte{'\n', '\n'})
 		}
 	}
 
 	res, err := n.client.Do(req)
+	// possible race?
+	defer res.Body.Close()
+
 	if err != nil {
 		return "", err
 	}
 
-	if debugMode {
+	if cxlogger.Log.Level == cxlogger.LvlDebug {
 		dump, err := httputil.DumpResponse(res, true)
 		if err != nil {
-			cxlogger.Log.Error(err)
+			cxlogger.Debug(err)
 		} else {
-			os.Stderr.Write(dump)
-			os.Stderr.Write([]byte{'\n'})
+			cxlogger.Debug(dump)
+			cxlogger.Debug([]byte{'\n', '\n'})
 		}
 	}
 
@@ -152,9 +154,6 @@ func (n *Notifier) PerformPost(payload interface{}) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-  // possible race?
-	defer res.Body.Close()
 
 	return string(body), nil
 }
