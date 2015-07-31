@@ -37,7 +37,7 @@ func main() {
 
 	// default logging
 	cxlogger.Initialize(flagLog, flagLogLevel)
-	cxlogger.Debug("Starting")
+	cxlogger.Info("Starting")
 
 	if len(args) > 0 && args[0] == "help" {
 		flag.PrintDefaults()

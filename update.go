@@ -62,28 +62,28 @@ func init() {
 func runUpdate() bool {
 	updateIt, err := needUpdate()
 	if err != nil {
-		cxlogger.Debug(err)
+		cxlogger.Info(err)
 		return false
 	}
 	if !updateIt {
-		cxlogger.Debug("No need for update")
+		cxlogger.Info("No need for update")
 		return false
 	}
 
 	// houston we have an update. which one do we need?
 	download, err := getVersionManifest(flagForcedVersion)
 	if err != nil {
-		cxlogger.Debug(err)
+		cxlogger.Info(err)
 	}
 	if download == nil {
-		cxlogger.Debug("Found no matching download for the current OS and ARCH")
+		cxlogger.Info("Found no matching download for the current OS and ARCH")
 		return false
 	}
 
 	err = download.update()
 	if err != nil {
-		cxlogger.Debug("Failed to update")
-		cxlogger.Debug(err)
+		cxlogger.Info("Failed to update")
+		cxlogger.Info(err)
 		return false
 	}
 	return true
@@ -91,7 +91,7 @@ func runUpdate() bool {
 
 func needUpdate() (bool, error) {
 	// get the latest version from remote
-	cxlogger.Debug("Checking for latest version")
+	cxlogger.Info("Checking for latest version")
 	latest, err := findLatestVersion()
 	if err != nil {
 		return false, err
@@ -101,7 +101,7 @@ func needUpdate() (bool, error) {
 
 	if flagForcedVersion != "" {
 		cxlogger.Debugf("Forcing update to %s\n", flagForcedVersion)
-		cxlogger.Debug(err)
+		cxlogger.Info(err)
 		return true, nil
 	} else {
 		flagForcedVersion = latest.Version
