@@ -1,0 +1,15 @@
+{
+	"ImportPath": "github.com/cloud66/cxlogger",
+	"GoVersion": "go1.5.1",
+	"Deps": [
+		{
+			"ImportPath": "github.com/mattn/go-colorable",
+			"Rev": "40e4aedc8fabf8c23e040057540867186712faa5"
+		},
+		{
+			"ImportPath": "gopkg.in/inconshreveable/log15.v2",
+			"Comment": "v2.10",
+			"Rev": "dc7890abeaadcb6a79a9a5ee30bc1897bbf97713"
+		}
+	]
+}

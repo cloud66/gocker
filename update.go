@@ -165,10 +165,7 @@ func (download *GockerDownload) update() error {
 		return err
 	}
 
-	err, errRecover := update.New().FromStream(bytes.NewBuffer(bin))
-	if errRecover != nil {
-		return fmt.Errorf("update and recovery errors: %q %q\n", err, errRecover)
-	}
+	err = update.Apply(bytes.NewBuffer(bin), &update.Options{})
 	if err != nil {
 		return err
 	}
